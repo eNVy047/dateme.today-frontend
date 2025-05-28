@@ -16,39 +16,56 @@ export const ChatInput = ({
   onTypingChange
 }: ChatInputProps) => {
   const [message, setMessage] = useState('');
- const typingTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
-
+  const typingTimeout = useRef<number | null>(null); 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (message.trim()) {
       onSendMessage(message);
       setMessage('');
+      // Clear any pending typing timeout
+      if (typingTimeout.current) {
+        clearTimeout(typingTimeout.current);
+        typingTimeout.current = null;
+      }
       onTypingChange(false);
     }
   };
 
-  useEffect(() => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    setMessage(newValue);
+    
+    // Clear existing timeout if any
     if (typingTimeout.current) {
       clearTimeout(typingTimeout.current);
     }
-
-    if (message && !isTyping) {
-      onTypingChange(true);
+    
+    // Determine typing status based on input
+    const currentlyTyping = newValue.length > 0;
+    
+    // Update typing status if changed
+    if (currentlyTyping !== isTyping) {
+      onTypingChange(currentlyTyping);
     }
-
-    typingTimeout.current = setTimeout(() => {
-      if (isTyping) {
+    
+    // Set timeout to reset typing status after pause
+    if (currentlyTyping) {
+      typingTimeout.current = setTimeout(() => {
         onTypingChange(false);
-      }
-    }, 2000);
+        typingTimeout.current = null;
+      }, 2000);
+    }
+  };
 
+  // Cleanup timeout on unmount
+  useEffect(() => {
     return () => {
       if (typingTimeout.current) {
         clearTimeout(typingTimeout.current);
       }
     };
-  }, [message, isTyping, onTypingChange]);
+  }, []);
 
   return (
     <form onSubmit={handleSubmit} className="p-4 border-t border-gray-200">
@@ -56,7 +73,7 @@ export const ChatInput = ({
         <input
           type="text"
           value={message}
-          onChange={(e) => setMessage(e.target.value)}
+          onChange={handleChange}  // Using handleChange here
           placeholder="Type your message..."
           className="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
           disabled={disabled}

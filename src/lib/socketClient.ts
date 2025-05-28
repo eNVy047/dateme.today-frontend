@@ -6,7 +6,7 @@ export class SocketClient {
   private callbacks: SocketEventCallbacks = {};
 
   constructor() {
-    this.socket = io('http://localhost:8000', {
+    this.socket = io('http://localhost:3000', {
       autoConnect: true,
       reconnection: true,
       reconnectionAttempts: 5,
@@ -19,14 +19,23 @@ export class SocketClient {
   private setupEventListeners() {
     this.socket.on('connect', () => {
       console.log('Connected to server');
+      this.socket.emit('find_match');
+      //console.log(this.socket.connected)
     });
 
-    this.socket.on('waiting_for_match', () => {
-      this.callbacks.onWaitingForMatch?.();
-    });
+   this.socket.on('waiting_for_match', () => {
+    
+  this.callbacks.onWaitingForMatch?.();
+  console.log('Waiting for a match...');
+   });
+
 
     this.socket.on('chat_started', (data) => {
       this.callbacks.onChatStarted?.(data);
+    });
+
+    this.socket.on('partner_typing', (isTyping) => {
+      this.callbacks.onPartnerTyping?.(isTyping);
     });
 
     this.socket.on('receive_message', (data) => {

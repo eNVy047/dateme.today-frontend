@@ -12,6 +12,7 @@ export const ChatPage = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [partnerTyping, setPartnerTyping] = useState(false);
+  
 
 
   const handleNewMessage = useCallback((message: Message) => {
@@ -33,6 +34,7 @@ export const ChatPage = () => {
     onPartnerLeft: () => {
       setIsWaiting(true);
       setIsConnected(false);
+      setPartnerTyping(false);
       setMessages((prev) => [
         ...prev,
         {
@@ -45,6 +47,7 @@ export const ChatPage = () => {
     onPartnerDisconnected: () => {
       setIsWaiting(true);
       setIsConnected(false);
+      setPartnerTyping(false);
       setMessages((prev) => [
         ...prev,
         {
